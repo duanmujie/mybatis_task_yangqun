@@ -1,0 +1,25 @@
+一、简单题  
+
+**1、Mybatis动态sql是做什么的？都有哪些动态sql？简述一下动态sql的执行原理？**
+Mybatis动态sql是让开发者可以在xml映射文件内，以xml标签的形式编写sql，可以完成逻辑判断和动态拼接sql的功能。
+Mybatis提供了9种动态sql标签，例如，<if/>,<when/>,<foreach/>等。
+动态sql的原理是使用OGNL表达式，从SQL参数对象中计算表达式的值，然后根据表达式的计算结果动态拼接sql，实现了动态sql功能。
+
+**2、Mybatis是否支持延迟加载？如果支持，它的实现原理是什么？**
+支持延迟加载，用在多表联合查询中，有时候不会立即用到所有联合查询结果。它的原理是，使用CGLIB创建目标对象的代理对象，并不会立刻填充属性值，当调用目标方法时，进入拦截器方法，如果判断到某属性为null，就会单独发送事先保存好的sql，把属性值查上来，再填充到对象的属性值中。
+
+**3、Mybatis都有哪些Executor执行器？它们之间的区别是什么？**
+ 有三种执行器，SimpleExecutor、ReuseExecutor、BatchExecutor。SimpleExecutor执行器是每执行一条语句，就开启一个statement对象，用完就关闭。ReuseExecutor是执行语句时候，以sql为key查找statement对象，存在就使用，不存在就创建，用完后也不关闭，存在map中下次继续使用。BatchExecutor将所有sql都添加到批处理中（addBatch()），等待统一执行（executeBatch()）。三种Executor的作用范围都在SqlSession生命周期范围中。
+
+**4、简述下Mybatis的一级、二级缓存（分别从存储结构、范围、失效场景。三个方面来作答）**  
+`存储结构：`一级缓存的底层数据结构是一个HashMap。二级缓存的底层数据结构也是一个HashMap
+`范围：`一级缓存是session级别的缓存,也称本地缓存,是一直开启的；二级缓存是mapper级别的缓存，是跨SqlSession的，可以说是应用级的。  
+`失效场景：`    
+a. sqlsession变了 一级缓存失效  
+b. sqlsession不变,查询条件不同，一级缓存失效  
+c. sqlsession不变,中间发生了增删改操作，一级缓存失败  
+d. sqlsession不变,手动清除缓存，一级缓存失败  
+
+**5、简述Mybatis的插件运行原理，以及如何编写一个插件？**  
+Mybatis仅可以编写针对四种接口的插件，分别是ParameterHandler、ResultSetHandler、StatementHandler、Executor。Mybatis使用JDK的动态代理，为需要拦截的接口生成代理对象，以实现接口方法拦截功能，每当执行这四种接口对象的方法时，就会进入指定的拦截方法。  
+编写插件时候，实现Mybatis的Interceptor接口并复写intercept()方法，然后再给插件编写注解，指定需要拦截的接口方法即可。
